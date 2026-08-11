@@ -1,0 +1,304 @@
+{
+  "info": {
+    "name": "Zapster E-Commerce API",
+    "_postman_id": "zapster-ecommerce-collection-2026",
+    "description": "Complete API collection for Zapster E-Commerce Platform. \n\nBase URL: http://localhost:4545\n\n**Setup:** Set the `baseUrl` variable to your server URL.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4545",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string",
+      "description": "Auto-set after login"
+    }
+  ],
+  "item": [
+    {
+      "name": "🏥 Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/health",
+            "description": "Check if the server is running"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) pm.collectionVariables.set('token', res.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Test@123\",\n  \"mobile\": \"+91 9876543210\"\n}"
+            },
+            "description": "Register a new customer account"
+          }
+        },
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) pm.collectionVariables.set('token', res.token);",
+                  "console.log('Token saved:', res.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@zapster.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "description": "Login as admin. Token is auto-saved to collection variable."
+          }
+        },
+        {
+          "name": "Login (Customer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) pm.collectionVariables.set('token', res.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rahul@gmail.com\",\n  \"password\": \"User@123\"\n}"
+            },
+            "description": "Login as a customer"
+          }
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/auth/me",
+            "description": "Get logged-in user profile (requires token)"
+          }
+        },
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/auth/all-users",
+            "description": "Get all registered users"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Products",
+      "item": [
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/product/all-products?limit=10&skip=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "product", "all-products"],
+              "query": [
+                { "key": "limit", "value": "10" },
+                { "key": "skip", "value": "0" }
+              ]
+            },
+            "description": "Get paginated list of all products"
+          }
+        },
+        {
+          "name": "Get Featured Products",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/product/featured-products",
+            "description": "Get featured/top 8 products for homepage"
+          }
+        },
+        {
+          "name": "Create Product (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/product/create-product",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"iPhone 15 Pro\",\n  \"description\": \"Latest Apple iPhone with A17 Pro chip, titanium design, and 48MP camera system.\",\n  \"originalPrice\": 134900,\n  \"discount\": 5,\n  \"category\": \"Mobiles\",\n  \"brand\": \"Apple\",\n  \"quantity\": 50,\n  \"imageUrl\": \"https://images.unsplash.com/photo-1695048133142-1a20484429be?w=600\"\n}"
+            },
+            "description": "Create a new product (admin only)"
+          }
+        },
+        {
+          "name": "Delete Product (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/product/delete-product/PRODUCT_ID_HERE",
+            "description": "Delete a product by ID (admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏷️ Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/category/all-categories",
+            "description": "Get all product categories"
+          }
+        },
+        {
+          "name": "Create Category (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/category/create-category",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Smart Home\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600\"\n}"
+            },
+            "description": "Create a new product category (admin only)"
+          }
+        },
+        {
+          "name": "Delete Category (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/category/delete-category/CATEGORY_ID_HERE",
+            "description": "Delete a category by ID (admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Brands",
+      "item": [
+        {
+          "name": "Get All Brands",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/brand/all-brands",
+            "description": "Get all brands"
+          }
+        },
+        {
+          "name": "Create Brand (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/brand/create-brand",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"OnePlus\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1662371547697-2e5ed3a9c1e6?w=600\"\n}"
+            },
+            "description": "Create a new brand (admin only)"
+          }
+        },
+        {
+          "name": "Delete Brand (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/brand/delete-brand/BRAND_ID_HERE",
+            "description": "Delete a brand by ID (admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Orders",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/order/create-order",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"PRODUCT_ID_HERE\",\n      \"quantity\": 2,\n      \"unitPrice\": 29999\n    }\n  ],\n  \"totalAmount\": 59998\n}"
+            },
+            "description": "Place an order (requires login)"
+          }
+        },
+        {
+          "name": "My Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/auth/myOrders",
+            "description": "Get logged-in user's orders"
+          }
+        },
+        {
+          "name": "All Orders (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/order/all-orders",
+            "description": "Get all orders (admin only)"
+          }
+        }
+      ]
+    }
+  ]
+}
