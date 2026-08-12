@@ -31,7 +31,7 @@ const AdminPanelLayout = () => {
            <ProfilePicture/>
             <h1 className="font-bold text-center">{auth.user?.fullname || auth.user?.name || "Admin"}</h1>
             <span className="absolute left-2 bg-gray-200 text-[10px] font-semibold text-gray-500 px-3 py-1 rounded ">
-              {auth.user.role}
+              {auth.user?.role || "ADMIN"}
             </span>
           </div>
 

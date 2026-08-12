@@ -216,13 +216,15 @@ export const updateProduct = async (req, res) => {
 
     let existing;
     if (isPrismaConnected) {
-      existing = await prisma.product.findUnique({ where: { id } });
+      existing = await prisma.product.findFirst({
+        where: { OR: [{ id }, { name: { equals: id, mode: 'insensitive' } }] }
+      });
     } else {
-      existing = memoryDb.products.find(p => p.id === id);
+      existing = memoryDb.products.find(p => p.id === id || p.name.toLowerCase() === id.toLowerCase());
     }
 
     if (!existing) {
-      return res.status(404).json({ message: `Product with ID '${id}' not found.` });
+      return res.status(404).json({ success: false, message: `Product with ID '${id}' not found.` });
     }
 
     const updateData = {};
@@ -230,12 +232,12 @@ export const updateProduct = async (req, res) => {
     if (description !== undefined) updateData.description = description;
     if (price !== undefined) {
       const priceNum = parseFloat(price);
-      if (isNaN(priceNum) || priceNum < 0) return res.status(400).json({ message: 'Invalid price.' });
+      if (isNaN(priceNum) || priceNum < 0) return res.status(400).json({ success: false, message: 'Invalid price.' });
       updateData.price = priceNum;
     }
     if (stock !== undefined) {
       const stockNum = parseInt(stock, 10);
-      if (isNaN(stockNum) || stockNum < 0) return res.status(400).json({ message: 'Invalid stock count.' });
+      if (isNaN(stockNum) || stockNum < 0) return res.status(400).json({ success: false, message: 'Invalid stock count.' });
       updateData.stock = stockNum;
     }
     if (category !== undefined) updateData.category = category;
@@ -245,22 +247,23 @@ export const updateProduct = async (req, res) => {
     let updatedProduct;
     if (isPrismaConnected) {
       updatedProduct = await prisma.product.update({
-        where: { id },
+        where: { id: existing.id },
         data: updateData
       });
     } else {
-      const index = memoryDb.products.findIndex(p => p.id === id);
+      const index = memoryDb.products.findIndex(p => p.id === existing.id);
       memoryDb.products[index] = { ...memoryDb.products[index], ...updateData };
       updatedProduct = memoryDb.products[index];
     }
 
-    return res.json({
+    return res.status(200).json({
+      success: true,
       message: 'Product updated successfully',
       product: mapProductForUI(updatedProduct)
     });
   } catch (error) {
     console.error('updateProduct error:', error);
-    return res.status(500).json({ message: 'Error updating product.', error: error.message });
+    return res.status(500).json({ success: false, message: 'Error updating product.', error: error.message });
   }
 };
 
@@ -270,25 +273,27 @@ export const deleteProduct = async (req, res) => {
 
     let existing;
     if (isPrismaConnected) {
-      existing = await prisma.product.findUnique({ where: { id } });
+      existing = await prisma.product.findFirst({
+        where: { OR: [{ id }, { name: { equals: id, mode: 'insensitive' } }] }
+      });
     } else {
-      existing = memoryDb.products.find(p => p.id === id);
+      existing = memoryDb.products.find(p => p.id === id || p.name.toLowerCase() === id.toLowerCase());
     }
 
     if (!existing) {
-      return res.status(404).json({ message: `Product with ID '${id}' not found.` });
+      return res.status(404).json({ success: false, message: `Product with ID '${id}' not found.` });
     }
 
     if (isPrismaConnected) {
-      await prisma.product.delete({ where: { id } });
+      await prisma.product.delete({ where: { id: existing.id } });
     } else {
-      memoryDb.products = memoryDb.products.filter(p => p.id !== id);
+      memoryDb.products = memoryDb.products.filter(p => p.id !== existing.id);
     }
 
-    return res.json({ message: 'Product deleted successfully.' });
+    return res.status(200).json({ success: true, message: 'Product deleted successfully.' });
   } catch (error) {
     console.error('deleteProduct error:', error);
-    return res.status(500).json({ message: 'Error deleting product.', error: error.message });
+    return res.status(500).json({ success: false, message: 'Error deleting product.', error: error.message });
   }
 };
 

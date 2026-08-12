@@ -26,8 +26,8 @@ const EditProducts = ({ slug, isOpen, setIsOpen,refetch  }) => {
       try {
         setLoading(true);
         const { data } = await axios.get(`${import.meta.env.VITE_HOST_URI}/api/v1/product/${slug}`);
-        if (data.success) {
-          const product = data.product;
+        if (data.product || data.success) {
+          const product = data.product || data;
           setFormData({
             name: product.name || "",
             description: product.description || "",
