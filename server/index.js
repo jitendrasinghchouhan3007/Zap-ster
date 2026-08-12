@@ -450,28 +450,63 @@ app.post('/api/v1/product/create-product', upload.array('images'), async (req, r
   }
 });
 
-// Update product (admin) - in-memory stub
-app.put('/api/v1/product/update-product/:slug', (req, res) => {
+// Update product (admin) - Prisma + memoryDb
+app.put('/api/v1/product/update-product/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
+    const { name, description, originalPrice, discount, category, brand, quantity } = req.body;
+
+    if (isPrismaConnected) {
+      const existing = await prisma.product.findFirst({
+        where: { OR: [{ id: slug }, { name: { equals: slug, mode: 'insensitive' } }] }
+      });
+      if (!existing) return res.status(404).json({ success: false, message: 'Product not found' });
+
+      const updateData = {};
+      if (name) updateData.name = name;
+      if (description) updateData.description = description;
+      if (originalPrice) {
+        const origPrice = parseFloat(originalPrice);
+        const discountVal = parseFloat(discount) || 10;
+        updateData.price = Math.round(origPrice * (1 - discountVal / 100));
+      }
+      if (category) updateData.category = category;
+      if (quantity) updateData.stock = parseInt(quantity) || existing.stock;
+
+      const updated = await prisma.product.update({ where: { id: existing.id }, data: updateData });
+      return res.status(200).json({ success: true, message: 'Product updated', product: mapProductForUI(updated) });
+    }
+
     const idx = memoryDb.products.findIndex(p => p.id === slug || p.name.toLowerCase().replace(/\s+/g, '-') === slug);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Product not found' });
     memoryDb.products[idx] = { ...memoryDb.products[idx], ...req.body };
     return res.status(200).json({ success: true, message: 'Product updated', product: mapProductForUI(memoryDb.products[idx]) });
   } catch (e) {
+    console.error('Update product error:', e);
     return res.status(500).json({ success: false, message: 'Failed to update product', error: e.message });
   }
 });
 
-// Delete product (admin) - in-memory stub  
-app.delete('/api/v1/product/delete/:productId', (req, res) => {
+// Delete product (admin) - Prisma + memoryDb
+app.delete('/api/v1/product/delete/:productId', async (req, res) => {
   try {
     const { productId } = req.params;
+
+    if (isPrismaConnected) {
+      const existing = await prisma.product.findFirst({
+        where: { OR: [{ id: productId }, { name: { equals: productId, mode: 'insensitive' } }] }
+      });
+      if (!existing) return res.status(404).json({ success: false, message: 'Product not found' });
+      await prisma.product.delete({ where: { id: existing.id } });
+      return res.status(200).json({ success: true, message: 'Product deleted successfully', product: mapProductForUI(existing) });
+    }
+
     const idx = memoryDb.products.findIndex(p => p.id === productId);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Product not found' });
     const deleted = memoryDb.products.splice(idx, 1)[0];
     return res.status(200).json({ success: true, message: 'Product deleted successfully', product: mapProductForUI(deleted) });
   } catch (e) {
+    console.error('Delete product error:', e);
     return res.status(500).json({ success: false, message: 'Failed to delete product', error: e.message });
   }
 });
