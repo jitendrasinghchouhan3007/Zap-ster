@@ -29,7 +29,7 @@ const AdminPanelLayout = () => {
           <h1 className="text-3xl pb-4 font-bold ">Admin Panel</h1>
           <div className="relative flex flex-col py-4 bg-white rounded-lg shadow-md border mx-8 items-center ">
            <ProfilePicture/>
-            <h1 className="font-bold text-center">{auth.user.fullname}</h1>
+            <h1 className="font-bold text-center">{auth.user?.fullname || auth.user?.name || "Admin"}</h1>
             <span className="absolute left-2 bg-gray-200 text-[10px] font-semibold text-gray-500 px-3 py-1 rounded ">
               {auth.user.role}
             </span>

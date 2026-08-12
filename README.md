@@ -227,7 +227,6 @@ Import the file [`Zapster-API.postman_collection.json`](./Zapster-API.postman_co
 
 ---
 
-# *Author*
+## 📄 License
 
-* Jitendra Singh Chouhan (jitendra, jsinghchouhan971@gmail.com)
-  - [LinkedIn](https://www.linkedin.com/in/jitendra-singh-chouhan-309560316/)
+MIT © 2026 Zapster
